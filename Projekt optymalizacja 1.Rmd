@@ -1,0 +1,39 @@
+---
+title: "Projekt - Optymalizacja nieliniowa"
+subtitle: "Optymalizacja jednowymiarowa"
+author: 
+  - "Flip Walkowicz"
+  - "Numer indeksu: 169860"
+  - "Grupa laboratoryjna: 5"
+  - "\n"
+  - "Krystian Urban"
+  - "Numer indeksu: 169857"
+  - "Grupa laboratoryjna: 5"
+date: "`r Sys.Date()`"
+header-includes: 
+  - \renewcommand{\and}{\\}
+output:
+  pdf_document:
+    fig_caption: true
+    number_sections: true
+  html_document: default
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+\newpage
+\renewcommand*\contentsname{Spis treści}
+\tableofcontents
+\newpage
+
+# Wstęp oraz opis danych
+## Wstęp teoretyczny
+
+## Wykorzystane funkcje:
+
+# Przygotowanie danych do analizy
+
+## Obróbka danych
