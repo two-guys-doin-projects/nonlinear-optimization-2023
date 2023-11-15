@@ -24,11 +24,148 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+```{=tex}
 \newpage
 \renewcommand*\contentsname{Spis treści}
 \tableofcontents
 \newpage
+```
+# Wstęp oraz opis celu projektu
 
-# Wstęp oraz opis danych
 <!-- ## Wstęp teoretyczny -->
 
+## Cele projekt
+
+Celem ćwiczenia jest zapoznanie się z gradientowymi oraz bezgradientowymi metodami optymalizacji jednowymiarowej poprzez ich implementację i zastosowanie do wyznaczenia minimów i maksimów podanej funkcji.
+
+## Teoria
+
+\newpage
+
+# Wizualizacja funkcji celu
+
+W tym pukcie naszego projektu zwizualizujemy naszą funkcję celu którą będziemy badać. $$f(x) = \sin(\frac{x}{10}) \times e^{-(\frac{x}{10} + \pi)^2} - \cos(\frac{x}{10}) \times e^{-(\frac{x}{10} - 2\pi)^2} + 0.003( \frac{x}{10})^2$$
+
+```{r comment=NA, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+# bibliotego do rysowania wykresów
+library(ggplot2)
+
+# definicja funkcji celu
+funkcja_celu <- function(x) {
+  return(sin(x/10)*exp(-(x/10+pi)^2) - cos(x/10)*exp(-(x/10-2*pi)^2) + 0.003*(x/10)^2)
+}
+
+# generowanie x
+x_values <- seq(-100, 100, length.out = 1000)
+# generowanie y
+y_values <- funkcja_celu(x_values)
+# stworzenie ramki danych
+data <- data.frame(x = x_values, y = y_values)
+
+# wizualizacja danych
+ggplot(data, aes(x = x, y = y)) +
+  geom_line() +
+  labs(x = 'X', y = 'Y', title = 'Funkcja celu') 
+```
+
+# Interpolacji Lagrange'a
+
+## Opis działania kodu
+
+  Metda działania algorytmu opartego na interpolacji Lagrange'a polega na wyszukaniu minimum/maxiumum na danym przedziale $[a, b]$. 
+Algorytm w każdym kroku wyznacza trzy punkty, odpowiednio:
+
+- a - początek przedziału
+- c - środek przedziału
+- b - koniec przedziału
+
+Następnie przez te punkty zostaje poprowadzony wielomian drugiego stopnia wyznaczony właśnie na podstawie wzoru interpolacyjnego Lagrange'a.
+Wyznaczone minimum na przedziale $[a, b]$(w każdym kroku nowe) pozwala nam zawęzić przedział poszukiwań.
+Minimum wyznaczamy następującym wzorem:
+$$d = \frac{1}{2} \times \frac{f(a)(c^2 - b^2) + f(c)(b^2 - a^2) + f(b)(a^2  - c^2)}{f(a)(c - b) + f(c)(b - a) + f(b)(a - c)}$$
+Następnie sprawdzamy warunki na których podstawie wyznaczamy nowy przedział:
+
+- $a < d < c \space \land \space f(d) < f(c)$
+- $a < d < c \space \land \space f(d) \geqslant f(c)$
+- $c < d < b \space \land \space f(d) < f(c)$
+- $c < d < b \space \land \space f(d) \geqslant f(c)$
+
+Koniec naszego algorytmu wyznacza długość przedziału który jest mniejszy od dokładności $\epsilon$.
+
+  Opis algotytmu krok po kroku:
+
+- Podaj funkcję, przedział oraz dokładność
+- Pierwsze wyznaczenie punktów a(początek przedziału), c(środek przedziału), b(koniec przedziału)
+- Powtarzanie w pętli while do póki długość przedziału jest mniejsza od dokładności:
+  + wyznaczenie minimum z wzoru interpolacyjnego Lagrange'a
+  + sprawdzenie warunku koniecznego
+  + wyznaczenie nowego przedziału
+  
+
+## Implementacja w kodzie
+
+```{r comment=NA, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+lagrange_interpolation <- function(f, a, c, b) {
+  return(1/2 *(f(a)*(c^2-b^2) + f(c)*(b^2-a^2) + f(b)*(a^2-c^2))/(f(a)*(c-b) + f(c)*(b-a) + f(b)*(a-c)))
+}
+
+cut_solution_interval <- function(f, a, c, b, d) {
+  if(a < d & d < c & f(d) < f(c)){
+    return(c(a, d, c))
+  }
+  if(a < d & d < c & f(d) >= f(c)){
+    return(c(d, c, b))
+  }
+  if(c < d & d < b & f(d) < f(c)){
+    return(c(c, d, b))
+  }
+  if(c< d & d < b & f(d) >= f(c)){
+    return(c(a, c, d))
+  }
+}
+
+lagrange_min <- function(f, interval, epsilon) {
+  a <- interval[1]
+  c <- (interval[1] + interval[2]) / 2
+  b <- interval[2]
+  d <- 0
+  if (a > c | c > b | a > b) {
+    return('Źle podany przedział')
+  }
+  while(b - a > epsilon)
+  {
+    d = lagrange_interpolation(f, a, c, b)
+    if(d > a & a < b & d != c)
+    {
+      new_interval <- cut_solution_interval(f, a, c, b, d)
+      a <- new_interval[1]
+      c <- new_interval[2]
+      b <- new_interval[3]
+    }
+    else 
+    {
+      return('Nie jest zbieżny')
+    }
+  }
+  return(c(a, b))
+}
+
+result <- lagrange_min(funkcja_celu, c(50, 100), 1/1000)
+print(result)
+```
+
+# Metoda Newtona-Armijo
+
+## Wstęp teoretyczny
+
+## Implementacja w kodzie
+
+# Podsumowanie
+
+## Porównanie metod
+
+## Wykorzystane biblioteki
+
+-   ggplot2
+-   formatR
