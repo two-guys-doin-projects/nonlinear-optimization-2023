@@ -30,10 +30,5 @@ knitr::opts_chunk$set(echo = TRUE)
 \newpage
 
 # Wstęp oraz opis danych
-## Wstęp teoretyczny
+<!-- ## Wstęp teoretyczny -->
 
-## Wykorzystane funkcje:
-
-# Przygotowanie danych do analizy
-
-## Obróbka danych
