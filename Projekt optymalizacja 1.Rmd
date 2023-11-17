@@ -69,8 +69,23 @@ ggplot(data, aes(x = x, y = y)) +
   geom_line() +
   labs(x = 'X', y = 'Y', title = 'Funkcja celu') 
 ```
+
 # Dwupunktowa metoda ekspansji Boxa-Daviesa-Swanna
-```{r}
+
+## Opis działania algorytmu
+Jest to metoda zaproponowana i opracowana przez Boxa, Daviesa oraz Swanna. Podobna do metody ekspansji z modyfikacją dla punktu początkowego różnego od zera.
+Startujemy z dowolnego punktu a współczynnik ekspansni jest stale równy 2. Znajdujemy przedział w którym znajduje się minimum funkcji więc testujemy w tym algorytmie 
+wartości funkcji na lewo( lewy koniec przedziału) jak i na prawo( prawy koniec przedziału).
+  
+  Poszukiwanie zaczynamy od sprawdzenia wartości funkcji na lewo/prawo od punktu startowego:
+  $$x_a{i+1} = x_0 - 2^{i}\delta$$
+  $$x_b{i+1} = x_0 + 2^{i}\delta$$
+Poszukiwania prowadzimy tak długo aż funkcja nie zacznie nam rosnąć(w obu przypadkach) czyli:
+$$f(x_{i+1}) > f (x_i)$$
+
+## Implementacja w kodzie
+
+```{r comment=NA, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 BDS <- function(f, x0, step){
   iterator <- 0
   found_a <- FALSE
@@ -96,6 +111,8 @@ BDS <- function(f, x0, step){
 }
 BDS(funkcja_celu, 50, 1/100)
 ```
+
+\newpage
 
 # Interpolacji Lagrange'a
 
@@ -160,11 +177,11 @@ lagrange_min <- function(f, start_point, epsilon) {
   b <- interval[2]
   d <- 0
 
-  if (a >= c | c >= b | a >= b) {
+  if (a >= c || c >= b || a >= b) {
     return('Źle podany przedział')
   }
 
-  while (b - a > epsilon | b - a == 0) {
+  while (b - a > epsilon || b - a == 0) {
     d <- lagrange_interpolation(f, a, c, b)
 
     if (d > a & d < b & d != c) {
@@ -180,29 +197,22 @@ lagrange_min <- function(f, start_point, epsilon) {
   return(c(a, b))
 }
 
-result <- lagrange_min(funkcja_celu, c(10, 80), 1/1000)
+result <- lagrange_min(funkcja_celu, 10, 1/1000)
 print(result)
 ```
 
 ## Badanie wydajności metody
 ```{r}
-intervals <- sample(-100:100, 200, replace = TRUE)
+intervals <- sample(-100:100, 100, replace = TRUE)
 results_a <- c()
 results_b <- c()
 for (i in 1:(length(intervals)-1)) {
-  if (intervals[i] > intervals[i + 1])
-  {
-    results <- lagrange_min(funkcja_celu, c(intervals[i + 1], intervals[i]), 1/1000)
+    results <- lagrange_min(funkcja_celu, intervals[i], 1/1000)
     results_a <- c(results_a, results[1])
     results_b <- c(results_b, results[2])
-  } else {
-    results <- lagrange_min(funkcja_celu, c(intervals[i], intervals[i + 1]), 1/1000)
-    results_a <- c(results_a, results[1])
-    results_b <- c(results_b, results[2])
-  }
 }
 result_matrix <- cbind(results_a, results_b)
-print(head(result_matrix))
+print(head(result_matrix, 3))
 
 library(openxlsx)
 write.xlsx(as.data.frame(result_matrix) , './pomiary.xlsx')
