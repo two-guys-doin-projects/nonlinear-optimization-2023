@@ -1,0 +1,47 @@
+---
+title: "Metoda Newtona-Armijo"
+author: "Krystian Urban, Filip Walkowicz"
+date: "2023-11-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("Deriv")
+```
+
+## Warunek Armijo
+
+```{r}
+armijoCondition <- function(func, x0, d, alpha){
+  if(0 > alpha || alpha > 1){
+    stop("Alfa nie jest z przedzialu [0,1]")
+  }
+  derivative <- Deriv(func)
+  return(
+    func(x0 + d) <= func(x0) + (d * alpha * derivative(x0)
+  ))
+}
+```
+
+## Pobieranie drugiej pochodnej
+
+```{r}
+getSecondDeriv <- function(func){
+  firstDerivative <- Deriv(func)
+  secondDerivative <- Deriv(firstDerivative)
+  return(
+    secondDerivative
+  )
+}
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
