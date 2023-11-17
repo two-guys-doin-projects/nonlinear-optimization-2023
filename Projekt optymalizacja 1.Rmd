@@ -60,6 +60,7 @@ funkcja_celu <- function(x) {
 x_values <- seq(-100, 100, length.out = 1000)
 # generowanie y
 y_values <- funkcja_celu(x_values)
+
 # stworzenie ramki danych
 data <- data.frame(x = x_values, y = y_values)
 
@@ -67,6 +68,33 @@ data <- data.frame(x = x_values, y = y_values)
 ggplot(data, aes(x = x, y = y)) +
   geom_line() +
   labs(x = 'X', y = 'Y', title = 'Funkcja celu') 
+```
+# Dwupunktowa metoda ekspansji Boxa-Daviesa-Swanna
+```{r}
+BDS <- function(f, x0, step){
+  iterator <- 0
+  found_a <- FALSE
+  found_b <- FALSE
+  a <- 0
+  b <- 0
+  while(TRUE){
+    next_x_a <- x0 - 2 ** iterator * step
+    next_x_b <- x0 + 2 ** iterator * step
+    if(f(next_x_a) >= f(x0) & found_a == FALSE){
+      a <- next_x_a
+      found_a <- TRUE
+    }
+    if(f(next_x_b) >= f(x0) & found_b == FALSE){
+      b <- next_x_b
+      found_b <- TRUE
+    }
+    if(found_a & found_b){
+      return(c(a, b))
+    }
+    iterator <- iterator + 1
+  }
+}
+BDS(funkcja_celu, 50, 1/100)
 ```
 
 # Interpolacji Lagrange'a
@@ -102,9 +130,9 @@ Koniec naszego algorytmu wyznacza długość przedziału który jest mniejszy od
   + sprawdzenie warunku koniecznego
   + wyznaczenie nowego przedziału
   
+Różnica w kodzie pomiędzy wyszukiwaniem minimum lokalnego a maksimum lokalnego polega na
 
 ## Implementacja w kodzie
-
 ```{r comment=NA, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 lagrange_interpolation <- function(f, a, c, b) {
   return(1/2 *(f(a)*(c^2-b^2) + f(c)*(b^2-a^2) + f(b)*(a^2-c^2))/(f(a)*(c-b) + f(c)*(b-a) + f(b)*(a-c)))
@@ -125,34 +153,59 @@ cut_solution_interval <- function(f, a, c, b, d) {
   }
 }
 
-lagrange_min <- function(f, interval, epsilon) {
+lagrange_min <- function(f, start_point, epsilon) {
+  interval <- BDS(f, start_point, 1/100)
   a <- interval[1]
   c <- (interval[1] + interval[2]) / 2
   b <- interval[2]
   d <- 0
-  if (a > c | c > b | a > b) {
+
+  if (a >= c | c >= b | a >= b) {
     return('Źle podany przedział')
   }
-  while(b - a > epsilon)
-  {
-    d = lagrange_interpolation(f, a, c, b)
-    if(d > a & a < b & d != c)
-    {
+
+  while (b - a > epsilon | b - a == 0) {
+    d <- lagrange_interpolation(f, a, c, b)
+
+    if (d > a & d < b & d != c) {
       new_interval <- cut_solution_interval(f, a, c, b, d)
       a <- new_interval[1]
       c <- new_interval[2]
       b <- new_interval[3]
-    }
-    else 
-    {
+    } else {
       return('Nie jest zbieżny')
     }
   }
+
   return(c(a, b))
 }
 
-result <- lagrange_min(funkcja_celu, c(50, 100), 1/1000)
+result <- lagrange_min(funkcja_celu, c(10, 80), 1/1000)
 print(result)
+```
+
+## Badanie wydajności metody
+```{r}
+intervals <- sample(-100:100, 200, replace = TRUE)
+results_a <- c()
+results_b <- c()
+for (i in 1:(length(intervals)-1)) {
+  if (intervals[i] > intervals[i + 1])
+  {
+    results <- lagrange_min(funkcja_celu, c(intervals[i + 1], intervals[i]), 1/1000)
+    results_a <- c(results_a, results[1])
+    results_b <- c(results_b, results[2])
+  } else {
+    results <- lagrange_min(funkcja_celu, c(intervals[i], intervals[i + 1]), 1/1000)
+    results_a <- c(results_a, results[1])
+    results_b <- c(results_b, results[2])
+  }
+}
+result_matrix <- cbind(results_a, results_b)
+print(head(result_matrix))
+
+library(openxlsx)
+write.xlsx(as.data.frame(result_matrix) , './pomiary.xlsx')
 ```
 
 # Metoda Newtona-Armijo
@@ -169,3 +222,4 @@ print(result)
 
 -   ggplot2
 -   formatR
+-   openxlsx
