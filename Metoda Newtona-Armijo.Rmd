@@ -19,21 +19,80 @@ armijoCondition <- function(func, x0, d, alpha){
   }
   derivative <- Deriv(func)
   return(
-    func(x0 + d) <= func(x0) + (d * alpha * derivative(x0)
-  ))
+    func(x0 + d) <= func(x0) + (d * alpha * derivative(x0))
+  )
+}
+```
+
+## Znajdowanie prawidłowej wielkości kroku
+
+```{r}
+
+determineStepSize(funcDeriv, x){
+  return(
+    -1 * (funcDeriv[1](x)/funcDeriv[2](x))
+  )
+}
+
+tuneStepSize <- function(func, x0, d, alpha, rho){
+  while (armijoCondition(func, x0, d, alpha) == FALSE) {
+    d <- d * rho
+  }
+  return(rho)
 }
 ```
 
 ## Pobieranie drugiej pochodnej
 
 ```{r}
-getSecondDeriv <- function(func){
+getDerivs <- function(func){
   firstDerivative <- Deriv(func)
   secondDerivative <- Deriv(firstDerivative)
-  return(
-    secondDerivative
-  )
+  return(c(
+    firstDerivative, secondDerivative
+  ))
 }
+```
+
+
+## Badanie kierunku spadku wartości funkcji
+
+```{r}
+
+functionValueDecreaseDirection <- function(functionDeriv, x){
+  if(functionDeriv[1](x) < 0){
+    return(1)
+  }
+  return(-1)
+}
+
+```
+
+
+
+## Metoda Newtona-Armijo
+
+```{r}
+newtonArmijo <- function(func, x, alpha, rho, tolerance){
+  funcDerivative <- getDerivs(func)
+  x.new <- x
+  repeat{
+    if(funcDerivative[2](x) >= 0){
+      d <- determineStepSize(funcDerivative, x)
+    }
+    else{
+      d <- 1 * functionValueDecreaseDirection(funcDerivative, x)
+    }
+    d <- tuneStepSize(func, x, d, alpha, rho)
+    x.new <- x + d
+    #TODO how to accept/reject new approximation and what to do if rejected?
+    if(abs(x.new - x) < tolerance){
+      return(x.new)
+    }
+    x <- x.new
+  }
+}
+
 ```
 
 ## Including Plots
