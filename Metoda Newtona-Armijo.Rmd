@@ -85,7 +85,6 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
     }
     d <- tuneStepSize(func, x, d, alpha, rho)
     x.new <- x + d
-    #TODO how to accept/reject new approximation and what to do if rejected?
     if(abs(x.new - x) < tolerance){
       return(x.new)
     }
