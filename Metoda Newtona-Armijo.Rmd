@@ -35,10 +35,12 @@ determineStepSize(funcDeriv, x){
 }
 
 tuneStepSize <- function(func, x0, d, alpha, rho){
-  while (armijoCondition(func, x0, d, alpha) == FALSE) {
+  repeat{
+    if(armijoCondition(func, x0, d, alpha) == TRUE){
+      return(d)
+    }
     d <- d * rho
   }
-  return(rho)
 }
 ```
 
