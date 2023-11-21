@@ -28,7 +28,7 @@ armijoCondition <- function(func, x0, d, alpha){
 
 ```{r}
 
-determineStepSize(funcDeriv, x){
+determineStepSize <- function(funcDeriv, x){
   return(
     -1 * (funcDeriv[[1]](x)/funcDeriv[[2]](x))
   )
