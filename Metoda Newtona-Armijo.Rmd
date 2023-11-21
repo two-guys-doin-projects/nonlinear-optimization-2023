@@ -77,7 +77,7 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
   funcDerivative <- getDerivs(func)
   x.new <- x
   repeat{
-    if(funcDerivative[2](x) >= 0){
+    if(funcDerivative[2](x) > 0){
       d <- determineStepSize(funcDerivative, x)
     }
     else{
