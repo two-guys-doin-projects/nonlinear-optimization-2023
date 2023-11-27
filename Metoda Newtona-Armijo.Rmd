@@ -95,3 +95,12 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
 }
 
 ```
+
+```{r}
+funkcja_celu <- function(x) {
+  return(sin(x/10)*exp(-(x/10+pi)^2) - cos(x/10)*exp(-(x/10-2*pi)^2) + 0.003*(x/10)^2)
+}
+
+funkcja_celu_minus <- function(x){
+  return -1 * funkcja_celu(x)
+}
