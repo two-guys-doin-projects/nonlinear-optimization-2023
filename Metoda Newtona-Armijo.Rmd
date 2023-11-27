@@ -104,3 +104,4 @@ funkcja_celu <- function(x) {
 funkcja_celu_minus <- function(x){
   return -1 * funkcja_celu(x)
 }
+```
