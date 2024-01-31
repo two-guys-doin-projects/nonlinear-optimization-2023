@@ -28,17 +28,19 @@ armijoCondition <- function(func, x0, d, alpha){
 
 ```{r}
 
-determineStepSize(funcDeriv, x){
+determineStepSize <- function(funcDeriv, x){
   return(
-    -1 * (funcDeriv[1](x)/funcDeriv[2](x))
+    -1 * (funcDeriv[[1]](x)/funcDeriv[[2]](x))
   )
 }
 
 tuneStepSize <- function(func, x0, d, alpha, rho){
-  while (armijoCondition(func, x0, d, alpha) == FALSE) {
+  repeat{
+    if(armijoCondition(func, x0, d, alpha) == TRUE){
+      return(d)
+    }
     d <- d * rho
   }
-  return(rho)
 }
 ```
 
@@ -60,7 +62,7 @@ getDerivs <- function(func){
 ```{r}
 
 functionValueDecreaseDirection <- function(functionDeriv, x){
-  if(functionDeriv[1](x) < 0){
+  if(functionDeriv[[1]](x) < 0){
     return(1)
   }
   return(-1)
@@ -77,7 +79,7 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
   funcDerivative <- getDerivs(func)
   x.new <- x
   repeat{
-    if(funcDerivative[2](x) >= 0){
+    if(funcDerivative[[2]](x) > 0){
       d <- determineStepSize(funcDerivative, x)
     }
     else{
@@ -85,7 +87,6 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
     }
     d <- tuneStepSize(func, x, d, alpha, rho)
     x.new <- x + d
-    #TODO how to accept/reject new approximation and what to do if rejected?
     if(abs(x.new - x) < tolerance){
       return(x.new)
     }
@@ -94,13 +95,3 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
 }
 
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
