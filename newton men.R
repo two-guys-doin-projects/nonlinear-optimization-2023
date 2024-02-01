@@ -56,7 +56,9 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
   
   funcDerivative <- getDerivs(func)
   x.new <- x
+  iterations <- 0
   repeat{
+    iterations <- iterations + 1
     #print(str_interp("Druga pochodna: ${funcDerivative[2][[1]](x)}"))
     if(funcDerivative[2][[1]](x) >= 0){
       d <- determineStepSize(funcDerivative, x)
@@ -70,8 +72,10 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
       return(c(x.new, func(x.new), function_calls))
     }
     if(x.new < -80 || x.new > 100){
-      cat("x = ", x, "\n")
       return(c(NA, NA, function_calls))
+    }
+    if(iterations == 100){
+      return(c(NA, NA, 0))
     }
     x <- x.new
     y <- func(x)
