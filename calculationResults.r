@@ -7,14 +7,20 @@ funkcja_celu <- function(x) {
 
 # checks which extremum the function has found.
 # Indedx 0 means that the found x is near the global extremum.
-determine_extremum <- function(found_extremum){
+determine_minimum <- function(found_extremum){
     extremums <- c(62.5, -52.5, -25, 0)
     distance_from_extremums <- abs(found_extremum - extremums)
     return(which.min(distance_from_extremums) - 1)
 }
 
+determine_maximum <- function(found_extremum){
+    extremums <- c(-38, -7, 46)
+    distance_from_extremums <- abs(found_extremum - extremums)
+    return(which.min(distance_from_extremums) - 1)
+}
+
 # TODO need to account for lagrange method return value(need no. of target function calls from it!)
-performLagrange <- function(func, a, b){
+performLagrange <- function(func, a, b, determine_extremum){
     epsilon <- 0.01
     result <- lagrange_min(func, c(a, b), epsilon)
     if(is.numeric(result[1])){
@@ -36,11 +42,11 @@ performLagrange <- function(func, a, b){
         found_extremum))
 }
 
-performNewtonArmijo <- function(func, a, b) {
+performNewtonArmijo <- function(func, a, b, determine_extremum) {
     function_calls <<- 0
     epsilon <- 0.01
     alpha <- 0.15
-    rho <- 0.1
+    rho <- 0.15
     starting_point <- (a + b)/2
     result <- newtonArmijo(func, starting_point, alpha, rho, epsilon)
     extremum <- result[1]
@@ -57,22 +63,23 @@ performNewtonArmijo <- function(func, a, b) {
 performNewtonArmijo(funkcja_celu, 10, 100)
 
 
-performCalculations <- function(func, points, bds_step_size){
+performCalculations <- function(func, points, bds_step_size, determine_extremum){
     intervals <- NULL
     for(point in points){
         next_interval <- BDS(func, point, bds_step_size)
-        intervals <- rbind(intervals, next_interval)
+        intervals <- rbind(intervals, c(point, next_interval))
     }
     interval_list <- split(
         intervals, seq(nrow(intervals))) # dataframe to list of rows conversion
     lagrange_results <- NULL
     newton_results <- NULL
     for(interval in interval_list){
-        a <- interval[1]
-        b <- interval[2]
-        lagrange_result <- performLagrange(func, a, b)
+        a <- interval[2]
+        b <- interval[3]
+        cat("Calculating stuff for interval a=", a, " b=", b, "...\n")
+        lagrange_result <- performLagrange(func, a, b, determine_extremum)
         lagrange_results <- rbind(lagrange_results, lagrange_result)
-        newton_result <- performNewtonArmijo(func, a, b)
+        newton_result <- performNewtonArmijo(func, a, b, determine_extremum)
         newton_results <- rbind(newton_results, newton_result)
     }
     return(list(
@@ -82,6 +89,8 @@ performCalculations <- function(func, points, bds_step_size){
     ))
 }
 
+
+newton_result <- performNewtonArmijo(funkcja_celu, -64.2, -12.8, determine_minimum)
 calc_results <- performCalculations(funkcja_celu, points, 0.1)
 
 lagrange_results <- calc_results[[2]]
@@ -89,10 +98,10 @@ as.numeric(lagrange_results[,2])
 # processing dataframes to get mean values
 
 processBDSResults <- function(bds_data_frame){
-    interval_lengths <- abs(bds_data_frame[,2] - bds_data_frame[,1])
+    interval_lengths <- abs(bds_data_frame[,3] - bds_data_frame[,2])
     mean_interval_length <- mean(interval_lengths)
     mean_no_of_func_calls <- round(
-        mean(bds_data_frame[,3]), digits=0
+        mean(bds_data_frame[,4]), digits=0
     )
     return(c(mean_interval_length, mean_no_of_func_calls))
 }
@@ -146,10 +155,10 @@ processResultsOfMethod(lagrange_results)
 
 library(stringr)
 
-doSimulationForStepSizes <- function(func, points, step_sizes){
+doSimulationForStepSizes <- function(func, points, step_sizes, determine_extremum){
     step_size_result_paths <- c("step1", "step2", "step3")
     for(step_size_index in 1:3){
-        simulationResults <- performCalculations(func, points, step_sizes[step_size_index])
+        simulationResults <- performCalculations(func, points, step_sizes[step_size_index], determine_extremum)
         bds_intervals <- simulationResults[[1]]
         lagrange_results <- simulationResults[[2]]
         newton_results <- simulationResults[[3]]
@@ -177,4 +186,4 @@ doSimulationForStepSizes <- function(func, points, step_sizes){
     }
 }
 library(stringr)
-doSimulationForStepSizes(funkcja_celu, points, c(0.1, 0.15, 0.3))
+doSimulationForStepSizes(funkcja_celu, points, c(0.1, 0.15, 0.3), determine_minimum)
