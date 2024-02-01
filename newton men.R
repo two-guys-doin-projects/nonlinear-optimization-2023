@@ -68,11 +68,13 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
     x.new <- x + d
     if(abs(x.new - x) < tolerance){
       return(c(x.new, func(x.new), function_calls))
-      
+    }
+    if(x.new < -80 || x.new > 100){
+      cat("x = ", x, "\n")
+      return(c(NA, NA, function_calls))
     }
     x <- x.new
     y <- func(x)
-    return(c(x, y, function_calls))
   }
 }
 
