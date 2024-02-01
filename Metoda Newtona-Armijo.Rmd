@@ -18,6 +18,7 @@ armijoCondition <- function(func, x0, d, alpha){
     stop("Alfa nie jest z przedzialu [0,1]")
   }
   derivative <- Deriv(func)
+  function_calls <<- function_calls + 2
   return(
     func(x0 + d) <= func(x0) + (d * alpha * derivative(x0))
   )
@@ -35,12 +36,10 @@ determineStepSize <- function(funcDeriv, x){
 }
 
 tuneStepSize <- function(func, x0, d, alpha, rho){
-  repeat{
-    if(armijoCondition(func, x0, d, alpha) == TRUE){
-      return(d)
-    }
+  while (armijoCondition(func, x0, d, alpha) == FALSE) {
     d <- d * rho
   }
+  return(d)
 }
 ```
 
@@ -62,10 +61,10 @@ getDerivs <- function(func){
 ```{r}
 
 functionValueDecreaseDirection <- function(functionDeriv, x){
-  if(functionDeriv[[1]](x) < 0){
-    return(1)
+  if(functionDeriv[1][[1]](x) < 0){
+    return(-1)
   }
-  return(-1)
+  return(1)
 }
 
 ```
@@ -78,8 +77,10 @@ functionValueDecreaseDirection <- function(functionDeriv, x){
 newtonArmijo <- function(func, x, alpha, rho, tolerance){
   funcDerivative <- getDerivs(func)
   x.new <- x
+  iterations <- 0
   repeat{
-    if(funcDerivative[[2]](x) > 0){
+    iterations <- iterations + 1
+    if(funcDerivative[2][[1]](x) >= 0){
       d <- determineStepSize(funcDerivative, x)
     }
     else{
@@ -88,10 +89,16 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
     d <- tuneStepSize(func, x, d, alpha, rho)
     x.new <- x + d
     if(abs(x.new - x) < tolerance){
-      return(x.new)
+      return(c(x.new, func(x.new), function_calls))
     }
-    
+    if(x.new < -80 || x.new > 100){
+      return(c(NA, NA, function_calls))
+    }
+    if(iterations == 100){
+      return(c(NA, NA, 0))
+    }
     x <- x.new
+    y <- func(x)
   }
 }
 
