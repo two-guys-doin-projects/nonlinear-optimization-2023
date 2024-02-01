@@ -66,6 +66,7 @@ performNewtonArmijo(funkcja_celu, 10, 100)
 performCalculations <- function(func, points, bds_step_size, determine_extremum){
     intervals <- NULL
     for(point in points){
+        cat("calculating for point ", point, "\n")
         next_interval <- BDS(func, point, bds_step_size)
         intervals <- rbind(intervals, c(point, next_interval))
     }
@@ -186,4 +187,4 @@ doSimulationForStepSizes <- function(func, points, step_sizes, determine_extremu
     }
 }
 library(stringr)
-doSimulationForStepSizes(funkcja_celu, points, c(0.1, 0.15, 0.3), determine_minimum)
+doSimulationForStepSizes(funkcja_celu_minus, points, c(0.1, 0.15, 0.3), determine_maximum)
