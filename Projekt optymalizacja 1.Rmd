@@ -55,6 +55,9 @@ library(ggplot2)
 funkcja_celu <- function(x) {
   return(sin(x/10)*exp(-(x/10+pi)^2) - cos(x/10)*exp(-(x/10-2*pi)^2) + 0.003*(x/10)^2)
 }
+funkcja_celu_minus <- function(x) {
+  -1*(sin(x/10)*exp(-(x/10+pi)^2) - cos(x/10)*exp(-(x/10-2*pi)^2) + 0.003*(x/10)^2)
+}
 
 # generowanie x
 x_values <- seq(-100, 100, length.out = 1000)
@@ -152,7 +155,13 @@ Różnica w kodzie pomiędzy wyszukiwaniem minimum lokalnego a maksimum lokalneg
 ## Implementacja w kodzie
 ```{r comment=NA, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 lagrange_interpolation <- function(f, a, c, b) {
-  return(1/2 *(f(a)*(c^2-b^2) + f(c)*(b^2-a^2) + f(b)*(a^2-c^2))/(f(a)*(c-b) + f(c)*(b-a) + f(b)*(a-c)))
+  return(
+    1/2 *(
+        f(a)*(c^2-b^2) + 
+        f(c)*(b^2-a^2) + 
+        f(b)*(a^2-c^2))
+            /
+        (f(a)*(c-b) + f(c)*(b-a) + f(b)*(a-c)))
 }
 
 cut_solution_interval <- function(f, a, c, b, d) {
@@ -170,31 +179,43 @@ cut_solution_interval <- function(f, a, c, b, d) {
   }
 }
 
-lagrange_min <- function(f, start_point, epsilon) {
-  interval <- BDS(f, start_point, 1/100)
-  a <- interval[1]
-  c <- (interval[1] + interval[2]) / 2
-  b <- interval[2]
+lagrange_min <- function(f, start_interval, epsilon) {
+  a <- start_interval[1]
+  c <- (start_interval[1] + start_interval[2]) / 2
+  b <- start_interval[2]
   d <- 0
-
+  next_d <- 0
+  gamma <- epsilon/100
+  iteracje <- 0
+  wywolania <- 0
   if (a >= c || c >= b || a >= b) {
     return('Źle podany przedział')
   }
-
   while (b - a > epsilon || b - a == 0) {
     d <- lagrange_interpolation(f, a, c, b)
-
+    if(is.nan(d)){
+      srodek <- (abs(a)+abs(b)/2)
+      return(c(srodek, f(srodek), iteracje, wywolania))
+      }
+    if(d < -80 || d > 100){
+      return(c('Nie jest zbieżny', NA, iteracje, NA))
+    }
     if (d > a & d < b & d != c) {
       new_interval <- cut_solution_interval(f, a, c, b, d)
+      wywolania <- wywolania + 2
       a <- new_interval[1]
       c <- new_interval[2]
       b <- new_interval[3]
+      iteracje <- iteracje + 1
     } else {
-      return('Nie jest zbieżny')
+      return(c('Nie jest zbieżny', NA, iteracje, NA))
+    }
+    next_d = lagrange_interpolation(f, a, c, b)
+    if(abs(next_d - d) < gamma){
+      return(c(d, f(d), iteracje, wywolania)) 
     }
   }
-
-  return(c(a, b))
+  return(c(d, f(d), iteracje, wywolania))  
 }
 
 result <- lagrange_min(funkcja_celu, 10, 1/1000)
