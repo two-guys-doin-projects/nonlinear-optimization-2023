@@ -90,6 +90,7 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
     if(abs(x.new - x) < tolerance){
       return(x.new)
     }
+    
     x <- x.new
   }
 }
@@ -102,6 +103,6 @@ funkcja_celu <- function(x) {
 }
 
 funkcja_celu_minus <- function(x){
-  return -1 * funkcja_celu(x)
+  -(sin(x/10)*exp(-(x/10+pi)^2) - cos(x/10)*exp(-(x/10-2*pi)^2) + 0.003*(x/10)^2)
 }
 ```
