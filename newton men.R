@@ -59,7 +59,6 @@ newtonArmijo <- function(func, x, alpha, rho, tolerance){
   iterations <- 0
   repeat{
     iterations <- iterations + 1
-    #print(str_interp("Druga pochodna: ${funcDerivative[2][[1]](x)}"))
     if(funcDerivative[2][[1]](x) >= 0){
       d <- determineStepSize(funcDerivative, x)
     }

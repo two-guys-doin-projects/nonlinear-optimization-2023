@@ -220,16 +220,104 @@ write.xlsx(as.data.frame(result_matrix) , './pomiary.xlsx')
 
 # Metoda Newtona-Armijo
 
-## Wstęp teoretyczny
+## Warunek Armijo
 
-## Implementacja w kodzie
+```{r}
+armijoCondition <- function(func, x0, d, alpha){
+  if(0 > alpha || alpha > 1){
+    stop("Alfa nie jest z przedzialu [0,1]")
+  }
+  derivative <- Deriv(func)
+  function_calls <<- function_calls + 2
+  return(
+    func(x0 + d) <= func(x0) + (d * alpha * derivative(x0))
+  )
+}
+```
 
-# Podsumowanie
+## Znajdowanie prawidłowej wielkości kroku
 
-## Porównanie metod
+```{r}
+
+determineStepSize <- function(funcDeriv, x){
+  return(
+    -1 * (funcDeriv[[1]](x)/funcDeriv[[2]](x))
+  )
+}
+
+tuneStepSize <- function(func, x0, d, alpha, rho){
+  while (armijoCondition(func, x0, d, alpha) == FALSE) {
+    d <- d * rho
+  }
+  return(d)
+}
+```
+
+## Pobieranie drugiej pochodnej
+
+```{r}
+getDerivs <- function(func){
+  firstDerivative <- Deriv(func)
+  secondDerivative <- Deriv(firstDerivative)
+  return(c(
+    firstDerivative, secondDerivative
+  ))
+}
+```
+
+
+## Badanie kierunku spadku wartości funkcji
+
+```{r}
+
+functionValueDecreaseDirection <- function(functionDeriv, x){
+  if(functionDeriv[1][[1]](x) < 0){
+    return(-1)
+  }
+  return(1)
+}
+
+```
+
+
+
+## Metoda Newtona-Armijo
+
+```{r}
+newtonArmijo <- function(func, x, alpha, rho, tolerance){
+  funcDerivative <- getDerivs(func)
+  x.new <- x
+  iterations <- 0
+  repeat{
+    iterations <- iterations + 1
+    if(funcDerivative[2][[1]](x) >= 0){
+      d <- determineStepSize(funcDerivative, x)
+    }
+    else{
+      d <- 1 * functionValueDecreaseDirection(funcDerivative, x)
+    }
+    d <- tuneStepSize(func, x, d, alpha, rho)
+    x.new <- x + d
+    if(abs(x.new - x) < tolerance){
+      return(c(x.new, func(x.new), function_calls))
+    }
+    if(x.new < -80 || x.new > 100){
+      return(c(NA, NA, function_calls))
+    }
+    if(iterations == 100){
+      return(c(NA, NA, 0))
+    }
+    x <- x.new
+    y <- func(x)
+  }
+}
+
+```
+
 
 ## Wykorzystane biblioteki
 
 -   ggplot2
 -   formatR
 -   openxlsx
+-   Deriv
